@@ -19,18 +19,10 @@ export default function AuthPage() {
     }
   }, [user, loading, router]);
 
-  // Show a loading spinner while auth state is being determined.
-  if (loading) {
+  // The AuthProvider will show a loading spinner, so we can render the page content.
+  // We'll still add a check to prevent flicker if the user is already logged in.
+  if (loading || user) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Bot className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  // If the user is somehow still present, show loading to allow AuthProvider to redirect
-  if (user) {
-     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Bot className="h-12 w-12 animate-spin text-primary" />
       </div>

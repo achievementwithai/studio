@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { Bot } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -65,21 +65,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
     useEffect(() => {
-        if (!loading && user && (pathname === '/' || pathname === '/auth')) {
-            router.push("/dashboard");
+        // Only redirect when loading is finished.
+        if (!loading) {
+            const isOnAuthPage = pathname === '/' || pathname === '/auth';
+            if (user && isOnAuthPage) {
+                router.push("/dashboard");
+            } else if (!user && !isOnAuthPage && pathname.startsWith('/dashboard')) {
+                router.push('/');
+            }
         }
     }, [user, loading, router, pathname]);
 
 
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Bot className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={{ user, loading }}>
-      {loading ? (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-          <Bot className="h-12 w-12 animate-spin text-primary" />
-        </div>
-      ) : (
-        children
-      )}
+        {children}
     </AuthContext.Provider>
   );
 };
