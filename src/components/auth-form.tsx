@@ -55,13 +55,15 @@ export function AuthForm({ type }: AuthFormProps) {
           title: "Account Created",
           description: "Welcome! You can now sign in.",
         });
+        // Reset form after successful sign-up
+        form.reset();
       } else {
         await signInAction({
           email: values.email,
           password: values.password,
         });
-        // Redirect is now handled by AuthProvider.
-        // A toast isn't needed here as the user is redirected.
+        // The redirect is handled by the AuthProvider, which is more reliable.
+        // A toast isn't needed here as the user is redirected immediately.
       }
     } catch (error) {
         let errorMessage = "An unknown error occurred.";

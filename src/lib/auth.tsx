@@ -48,11 +48,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     displayName: userData.displayName || authUser.displayName,
                 });
             } else {
-                // This case might happen briefly during sign up.
+                // This case might happen briefly during sign up before doc is created.
                 // We set the basic user object first.
                 setUser(authUser);
             }
              setLoading(false);
+        }, (error) => {
+            console.error("Error fetching user data:", error);
+            setUser(null);
+            setLoading(false);
         });
         return () => unsubSnapshot();
       } else {
@@ -65,12 +69,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
     useEffect(() => {
-        // Only redirect when loading is finished.
+        // This effect now reliably runs only *after* the onAuthStateChanged
+        // has finished its initial run and set loading to false.
         if (!loading) {
-            const isOnAuthPage = pathname === '/' || pathname === '/auth';
-            if (user && isOnAuthPage) {
+            const isAuthPage = pathname === '/';
+            const isDashboardPage = pathname.startsWith('/dashboard');
+
+            if (user && isAuthPage) {
+                // If user is logged in and on the auth page, redirect to dashboard.
                 router.push("/dashboard");
-            } else if (!user && !isOnAuthPage && pathname.startsWith('/dashboard')) {
+            } else if (!user && isDashboardPage) {
+                // If user is not logged in and tries to access a dashboard page, redirect to login.
                 router.push('/');
             }
         }

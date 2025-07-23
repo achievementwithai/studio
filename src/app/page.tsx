@@ -12,16 +12,13 @@ export default function AuthPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // The redirect is now handled by the AuthProvider,
-    // but we can still push the user away if they land here while logged in.
+    // This effect is now a safeguard. The primary redirect is in AuthProvider.
     if (!loading && user) {
       router.push("/dashboard");
     }
   }, [user, loading, router]);
 
-  // The AuthProvider will show a loading spinner, so we can render the page content.
-  // We'll still add a check to prevent flicker if the user is already logged in.
-  if (loading || user) {
+  if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Bot className="h-12 w-12 animate-spin text-primary" />
@@ -29,33 +26,44 @@ export default function AuthPage() {
     );
   }
 
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-primary/10 p-4">
-            <Bot className="h-12 w-12 text-primary" />
+  // Only render the auth form if not loading and no user is present.
+  if (!user) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md">
+          <div className="mb-8 text-center">
+            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-primary/10 p-4">
+              <Bot className="h-12 w-12 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">
+              Welcome to Ultra AI Assistant
+            </h1>
+            <p className="text-muted-foreground">
+              Sign in or create an account to continue
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Welcome to Ultra AI Assistant
-          </h1>
-          <p className="text-muted-foreground">
-            Sign in or create an account to continue
-          </p>
+          <Tabs defaultValue="signin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+            <TabsContent value="signin">
+              <AuthForm type="signin" />
+            </TabsContent>
+            <TabsContent value="signup">
+              <AuthForm type="signup" />
+            </TabsContent>
+          </Tabs>
         </div>
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-          <TabsContent value="signin">
-            <AuthForm type="signin" />
-          </TabsContent>
-          <TabsContent value="signup">
-            <AuthForm type="signup" />
-          </TabsContent>
-        </Tabs>
       </div>
-    </div>
-  );
+    );
+  }
+  
+  // If we are here, it means loading is done, and there IS a user. 
+  // The AuthProvider should be redirecting, but we can show a spinner as a fallback.
+  return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Bot className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
 }
