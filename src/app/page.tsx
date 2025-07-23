@@ -14,9 +14,6 @@ export default function AuthPage() {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
-
-  useEffect(() => {
     if (!loading && user) {
       router.push("/dashboard");
     }
