@@ -18,6 +18,7 @@ import { signInAction, signUpAction } from "@/actions/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { FirebaseError } from "firebase/app";
+import { useRouter } from "next/navigation";
 
 interface AuthFormProps {
   type: "signin" | "signup";
@@ -33,6 +34,7 @@ const formSchema = z.object({
 
 export function AuthForm({ type }: AuthFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -69,6 +71,8 @@ export function AuthForm({ type }: AuthFormProps) {
           title: "Signed In",
           description: "Welcome back!",
         });
+        // Force a reload to ensure the auth state is updated and redirection occurs.
+        router.refresh();
       }
     } catch (error) {
         let errorMessage = "An unknown error occurred.";
