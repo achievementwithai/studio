@@ -32,18 +32,23 @@ export async function addWebhookAction(data: WebhookData): Promise<WebhookWithId
   
   // In a real app, encrypt the password here before storing
   const { password, ...authData } = data.auth;
-  const passwordEncrypted = password ? `encrypted_${password}` : '';
+  const passwordEncrypted = password ? `encrypted_${password}` : undefined;
 
-  const docRef = await addDoc(collection(db, "webhooks"), {
+  const webhookPayload: any = {
     ownerId: userId,
     name: data.name,
     url: data.url,
     auth: {
-        ...authData,
-        passwordEncrypted,
+      username: authData.username,
     },
     createdAt: serverTimestamp(),
-  });
+  };
+
+  if (passwordEncrypted) {
+    webhookPayload.auth.passwordEncrypted = passwordEncrypted;
+  }
+
+  const docRef = await addDoc(collection(db, "webhooks"), webhookPayload);
   
   const newDoc = await getDoc(docRef);
   const newWebhook = { id: newDoc.id, ...newDoc.data() } as WebhookWithId;
