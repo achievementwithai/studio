@@ -61,7 +61,6 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
   const userId = getCurrentUserId();
   const docRef = doc(db, "webhooks", id);
   
-  // Ensure the user owns this webhook before updating.
   const existingDoc = await getDoc(docRef);
   if (!existingDoc.exists() || existingDoc.data().ownerId !== userId) {
     throw new Error("Webhook not found or you do not have permission to edit it.");
@@ -74,10 +73,8 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
       'auth.username': authData.username,
   };
 
-  if(password) {
+  if (password) {
       updateData['auth.passwordEncrypted'] = `encrypted_${password}`;
-  } else if (webhookPayload.auth.passwordEncrypted) {
-    delete webhookPayload.auth.passwordEncrypted;
   }
 
 
