@@ -67,7 +67,6 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
     throw new Error("Webhook not found or you do not have permission to edit it.");
   }
 
-  // In a real app, encrypt the password here before storing
   const { password, ...authData } = data.auth;
   const updateData: any = {
       name: data.name,
