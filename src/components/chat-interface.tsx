@@ -9,7 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
-import { Bot, Loader2, Send, User } from "lucide-react";
+import { Bot, Loader2, Send, User, MessageSquare } from "lucide-react";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 
 interface Message {
   sender: "user" | "ai";
@@ -158,5 +159,3 @@ export function ChatInterface({ webhooks }: ChatInterfaceProps) {
     </Card>
   );
 }
-// Dummy Card components for compilation
-import { Card, CardHeader, CardContent, CardFooter, MessageSquare } from "@/components/ui/card";
