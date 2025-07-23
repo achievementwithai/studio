@@ -46,14 +46,18 @@ export function AuthForm({ type }: AuthFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (type === "signup") {
+        if (!values.displayName) {
+          form.setError("displayName", { type: "manual", message: "Display name is required for sign up." });
+          return;
+        }
         await signUpAction({
           email: values.email,
           password: values.password,
-          displayName: values.displayName || "",
+          displayName: values.displayName,
         });
         toast({
           title: "Account Created",
-          description: "Welcome! Please check your email for verification.",
+          description: "Welcome! You can now sign in.",
         });
       } else {
         await signInAction({
@@ -69,8 +73,7 @@ export function AuthForm({ type }: AuthFormProps) {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description:
-          "There was an error behind the scenes, please contact support.",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
       });
     }
   }
