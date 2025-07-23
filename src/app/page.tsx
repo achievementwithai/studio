@@ -1,22 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { AuthForm } from "@/components/auth-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth";
-import { Bot } from "lucide-react";
+import { Bot, User, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function AuthPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    // This effect is now a safeguard. The primary redirect is in AuthProvider.
-    if (!loading && user) {
-      router.push("/dashboard");
-    }
-  }, [user, loading, router]);
+  const { loading, loginAs } = useAuth();
 
   if (loading) {
     return (
@@ -26,44 +15,31 @@ export default function AuthPage() {
     );
   }
 
-  // Only render the auth form if not loading and no user is present.
-  if (!user) {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-primary/10 p-4">
-              <Bot className="h-12 w-12 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Welcome to Ultra AI Assistant
-            </h1>
-            <p className="text-muted-foreground">
-              Sign in or create an account to continue
-            </p>
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-primary/10 p-4">
+            <Bot className="h-12 w-12 text-primary" />
           </div>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin">
-              <AuthForm type="signin" />
-            </TabsContent>
-            <TabsContent value="signup">
-              <AuthForm type="signup" />
-            </TabsContent>
-          </Tabs>
+          <h1 className="text-3xl font-bold text-foreground">
+            Welcome to Ultra AI Assistant
+          </h1>
+          <p className="text-muted-foreground">
+            Choose a user role to explore the application.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Button size="lg" variant="outline" onClick={() => loginAs("user")}>
+                <User className="mr-2"/>
+                Login as User
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => loginAs("admin")}>
+                <Shield className="mr-2"/>
+                Login as Admin
+            </Button>
         </div>
       </div>
-    );
-  }
-  
-  // If we are here, it means loading is done, and there IS a user. 
-  // The AuthProvider should be redirecting, but we can show a spinner as a fallback.
-  return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Bot className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    </div>
+  );
 }

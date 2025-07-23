@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Bot, LayoutDashboard, Webhook, MessageSquare, User as UserIcon, LogOut, Settings } from "lucide-react";
 import Link from 'next/link';
 
@@ -25,13 +23,11 @@ const navItems = [
 ];
 
 export function DashboardSidebarContent() {
-  const { user } = useAuth();
-  const router = useRouter();
+  const { user, logout } = useAuth();
   const pathname = usePathname();
 
-  const handleSignOut = async () => {
-    await signOut(auth);
-    router.push("/");
+  const handleSignOut = () => {
+    logout();
   };
   
   const getInitials = (name?: string | null) => {

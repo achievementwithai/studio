@@ -8,12 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { auth } from "./firebase";
 import { Bot } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-export interface UserProfile extends User {
+// This is now a mock user profile for development
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
   role?: "admin" | "user";
   avatarUrl?: string;
 }
@@ -21,12 +24,33 @@ export interface UserProfile extends User {
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
+  loginAs: (role: "user" | "admin") => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  loginAs: () => {},
+  logout: () => {},
 });
+
+const MOCK_USERS = {
+    user: {
+        uid: 'mock-user-id',
+        email: 'user@example.com',
+        displayName: 'John Doe',
+        role: 'user',
+        avatarUrl: 'https://placehold.co/100x100.png',
+    },
+    admin: {
+        uid: 'mock-admin-id',
+        email: 'admin@example.com',
+        displayName: 'Jane Admin',
+        role: 'admin',
+        avatarUrl: 'https://placehold.co/100x100.png',
+    }
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -35,67 +59,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-      if (authUser) {
-        const userDocRef = doc(db, "users", authUser.uid);
-        const unsubSnapshot = onSnapshot(userDocRef, (doc) => {
-            if (doc.exists()) {
-                const userData = doc.data();
-                 setUser({
-                    ...authUser,
-                    role: userData.role,
-                    avatarUrl: userData.avatarUrl,
-                    displayName: userData.displayName || authUser.displayName,
-                });
-            } else {
-                // This case might happen briefly during sign up before doc is created.
-                // We set the basic user object first.
-                setUser(authUser);
-            }
-             setLoading(false);
-        }, (error) => {
-            console.error("Error fetching user data:", error);
-            setUser(null);
-            setLoading(false);
-        });
-        return () => unsubSnapshot();
-      } else {
-        setUser(null);
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
+    try {
+        const storedUser = sessionStorage.getItem('mockUser');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    } catch (error) {
+        console.error("Could not parse mock user from session storage", error);
+    }
+    setLoading(false);
   }, []);
   
-    useEffect(() => {
-        // This effect now reliably runs only *after* the onAuthStateChanged
-        // has finished its initial run and set loading to false.
-        if (!loading) {
-            const isAuthPage = pathname === '/';
-            const isDashboardPage = pathname.startsWith('/dashboard');
-
-            if (user && isAuthPage) {
-                // If user is logged in and on the auth page, redirect to dashboard.
-                router.push("/dashboard");
-            } else if (!user && isDashboardPage) {
-                // If user is not logged in and tries to access a dashboard page, redirect to login.
-                router.push('/');
-            }
-        }
-    }, [user, loading, router, pathname]);
-
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Bot className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+  const loginAs = (role: 'user' | 'admin') => {
+    const mockUser = MOCK_USERS[role];
+    sessionStorage.setItem('mockUser', JSON.stringify(mockUser));
+    setUser(mockUser);
+    router.push('/dashboard');
   }
 
+  const logout = () => {
+    sessionStorage.removeItem('mockUser');
+    setUser(null);
+    router.push('/');
+  }
+
+  useEffect(() => {
+    if (!loading) {
+      const isAuthPage = pathname === '/';
+      const isDashboardPage = pathname.startsWith('/dashboard');
+
+      if (user && isAuthPage) {
+        router.push("/dashboard");
+      } else if (!user && isDashboardPage) {
+        router.push('/');
+      }
+    }
+  }, [user, loading, router, pathname]);
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, loginAs, logout }}>
         {children}
     </AuthContext.Provider>
   );
