@@ -70,11 +70,14 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
   const updateData: any = {
       name: data.name,
       url: data.url,
-      'auth.username': authData.username,
+      auth: {
+        ...existingDoc.data().auth,
+        username: authData.username,
+      }
   };
 
   if (password) {
-      updateData['auth.passwordEncrypted'] = `encrypted_${password}`;
+      updateData.auth.passwordEncrypted = `encrypted_${password}`;
   }
 
 
@@ -111,5 +114,10 @@ export async function getWebhooksAction(): Promise<WebhookWithId[]> {
   querySnapshot.forEach((doc) => {
     webhooks.push({ id: doc.id, ...doc.data() } as WebhookWithId);
   });
-  return webhooks.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+  return webhooks.sort((a, b) => {
+    if (a.createdAt && b.createdAt) {
+      return b.createdAt.seconds - a.createdAt.seconds;
+    }
+    return 0;
+  });
 }
