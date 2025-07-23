@@ -17,7 +17,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { signInAction, signUpAction } from "@/actions/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { FirebaseError } from "firebase/app";
 
 interface AuthFormProps {
   type: "signin" | "signup";
@@ -74,26 +73,7 @@ export function AuthForm({ type }: AuthFormProps) {
       }
     } catch (error) {
         let errorMessage = "An unknown error occurred.";
-        if (error instanceof FirebaseError) {
-            switch (error.code) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                    errorMessage = 'Invalid email or password. Please try again.';
-                    break;
-                case 'auth/email-already-in-use':
-                    errorMessage = 'This email is already registered. Please sign in.';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'The password is too weak. Please choose a stronger password.';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Please enter a valid email address.';
-                    break;
-                default:
-                    errorMessage = 'An unexpected authentication error occurred. Please try again later.';
-                    break;
-            }
-        } else if (error instanceof Error) {
+        if (error instanceof Error) {
             errorMessage = error.message;
         }
       toast({
