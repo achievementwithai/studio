@@ -46,14 +46,10 @@ export function AuthForm({ type }: AuthFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (type === "signup") {
-        if (!values.displayName) {
-          form.setError("displayName", { type: "manual", message: "Display name is required for sign up." });
-          return;
-        }
         await signUpAction({
           email: values.email,
           password: values.password,
-          displayName: values.displayName,
+          displayName: values.displayName || '',
         });
         toast({
           title: "Account Created",
@@ -64,12 +60,8 @@ export function AuthForm({ type }: AuthFormProps) {
           email: values.email,
           password: values.password,
         });
-        toast({
-          title: "Signed In",
-          description: "Welcome back!",
-        });
-        // Force a full page reload to ensure auth state is updated and redirection occurs.
-        window.location.href = "/dashboard";
+        // This will be handled by the AuthProvider now.
+        // A toast isn't needed here as the user is redirected.
       }
     } catch (error) {
         let errorMessage = "An unknown error occurred.";

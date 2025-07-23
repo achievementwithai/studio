@@ -8,9 +8,10 @@ import {
   type ReactNode,
 } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { Bot } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export interface UserProfile extends User {
   role?: "admin" | "user";
@@ -30,31 +31,46 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUser({
-            ...user,
-            role: userData.role,
-            avatarUrl: userData.avatarUrl,
-            displayName: userData.displayName || user.displayName,
-           });
-        } else {
-           setUser(user);
-        }
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      if (authUser) {
+        const userDocRef = doc(db, "users", authUser.uid);
+        const unsubSnapshot = onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+                const userData = doc.data();
+                 setUser({
+                    ...authUser,
+                    role: userData.role,
+                    avatarUrl: userData.avatarUrl,
+                    displayName: userData.displayName || authUser.displayName,
+                });
+            } else {
+                setUser(authUser);
+            }
+             setLoading(false);
+        });
+        return () => unsubSnapshot();
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+  
+    useEffect(() => {
+    if (!loading && user) {
+      // Assuming you want to redirect to /dashboard after login
+      // and you are not on a dashboard page already.
+      if(window.location.pathname === '/' || window.location.pathname === '/auth'){
+          router.push("/dashboard");
+      }
+    }
+  }, [user, loading, router]);
+
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
