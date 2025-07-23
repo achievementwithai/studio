@@ -1,6 +1,6 @@
 "use server";
 
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { addDoc, collection, getDocs, query, where, doc, updateDoc, deleteDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 
@@ -19,16 +19,12 @@ export interface WebhookWithId extends WebhookData {
   createdAt: { seconds: number; nanoseconds: number; };
 }
 
-// NOTE: In a real app, you would use a proper auth check mechanism
-// that's available on the server. For this example, we rely on the
-// client to pass the user's UID, which is not secure for production.
-// A better approach involves Firebase App Check or custom auth tokens.
+// NOTE: This is a temporary solution for the mock auth system.
+// It uses a hardcoded user ID. In a real app, you would get the
+// user ID from a secure server-side session.
 function getCurrentUserId(): string {
-  const user = auth.currentUser;
-  if (!user) {
-    throw new Error("User not authenticated");
-  }
-  return user.uid;
+  // Using the mock user's ID.
+  return 'mock-user-id';
 }
 
 export async function addWebhookAction(data: WebhookData): Promise<WebhookWithId> {
@@ -60,18 +56,22 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
   const userId = getCurrentUserId();
   const docRef = doc(db, "webhooks", id);
   
+  // Ensure the user owns this webhook before updating.
+  const existingDoc = await getDoc(docRef);
+  if (!existingDoc.exists() || existingDoc.data().ownerId !== userId) {
+    throw new Error("Webhook not found or you do not have permission to edit it.");
+  }
+
   // In a real app, encrypt the password here before storing
   const { password, ...authData } = data.auth;
   const updateData: any = {
       name: data.name,
       url: data.url,
+      'auth.username': authData.username,
   };
 
   if(password) {
       updateData['auth.passwordEncrypted'] = `encrypted_${password}`;
-  }
-  if(authData.username !== undefined){
-    updateData['auth.username'] = authData.username;
   }
 
   await updateDoc(docRef, updateData);
@@ -85,8 +85,15 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
 
 export async function deleteWebhookAction(id: string) {
   const userId = getCurrentUserId();
-  // Add a security check here to ensure the user owns the webhook
-  await deleteDoc(doc(db, "webhooks", id));
+  const docRef = doc(db, "webhooks", id);
+  
+  // Ensure the user owns this webhook before deleting.
+  const existingDoc = await getDoc(docRef);
+  if (!existingDoc.exists() || existingDoc.data().ownerId !== userId) {
+    throw new Error("Webhook not found or you do not have permission to delete it.");
+  }
+
+  await deleteDoc(docRef);
   revalidatePath("/dashboard/webhooks");
 }
 
