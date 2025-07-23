@@ -69,7 +69,8 @@ export function AuthForm({ type }: AuthFormProps) {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        description:
+          "There was an error behind the scenes, please contact support.",
       });
     }
   }
