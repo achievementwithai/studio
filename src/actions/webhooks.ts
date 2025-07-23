@@ -30,7 +30,6 @@ function getCurrentUserId(): string {
 export async function addWebhookAction(data: WebhookData): Promise<WebhookWithId> {
   const userId = getCurrentUserId();
   
-  // In a real app, encrypt the password here before storing
   const { password, ...authData } = data.auth;
   const passwordEncrypted = password ? `encrypted_${password}` : undefined;
 
@@ -54,6 +53,7 @@ export async function addWebhookAction(data: WebhookData): Promise<WebhookWithId
   const newWebhook = { id: newDoc.id, ...newDoc.data() } as WebhookWithId;
   
   revalidatePath("/dashboard/webhooks");
+  revalidatePath("/dashboard/chat");
   return newWebhook;
 }
 
@@ -76,7 +76,10 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
 
   if(password) {
       updateData['auth.passwordEncrypted'] = `encrypted_${password}`;
+  } else if (webhookPayload.auth.passwordEncrypted) {
+    delete webhookPayload.auth.passwordEncrypted;
   }
+
 
   await updateDoc(docRef, updateData);
   
@@ -84,6 +87,7 @@ export async function updateWebhookAction(id: string, data: WebhookData): Promis
   const updatedWebhook = { id: updatedDoc.id, ...updatedDoc.data() } as WebhookWithId;
 
   revalidatePath("/dashboard/webhooks");
+  revalidatePath("/dashboard/chat");
   return updatedWebhook;
 }
 
@@ -99,6 +103,7 @@ export async function deleteWebhookAction(id: string) {
 
   await deleteDoc(docRef);
   revalidatePath("/dashboard/webhooks");
+  revalidatePath("/dashboard/chat");
 }
 
 export async function getWebhooksAction(): Promise<WebhookWithId[]> {
