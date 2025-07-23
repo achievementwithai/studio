@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,10 +10,8 @@ import { Bot } from "lucide-react";
 export default function AuthPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
     if (!loading && user) {
       router.push("/dashboard");
     }
@@ -41,20 +39,18 @@ export default function AuthPage() {
             Sign in or create an account to continue
           </p>
         </div>
-        {isClient && (
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin">
-              <AuthForm type="signin" />
-            </TabsContent>
-            <TabsContent value="signup">
-              <AuthForm type="signup" />
-            </TabsContent>
-          </Tabs>
-        )}
+        <Tabs defaultValue="signin" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="signin">Sign In</TabsTrigger>
+            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          </TabsList>
+          <TabsContent value="signin">
+            <AuthForm type="signin" />
+          </TabsContent>
+          <TabsContent value="signup">
+            <AuthForm type="signup" />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
