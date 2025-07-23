@@ -11,7 +11,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { Bot } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export interface UserProfile extends User {
   role?: "admin" | "user";
@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
@@ -47,6 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     displayName: userData.displayName || authUser.displayName,
                 });
             } else {
+                // This case might happen briefly during sign up.
+                // We set the basic user object first.
                 setUser(authUser);
             }
              setLoading(false);
@@ -62,14 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
     useEffect(() => {
-    if (!loading && user) {
-      // Assuming you want to redirect to /dashboard after login
-      // and you are not on a dashboard page already.
-      if(window.location.pathname === '/' || window.location.pathname === '/auth'){
-          router.push("/dashboard");
-      }
-    }
-  }, [user, loading, router]);
+        if (!loading && user && (pathname === '/' || pathname === '/auth')) {
+            router.push("/dashboard");
+        }
+    }, [user, loading, router, pathname]);
 
 
   return (

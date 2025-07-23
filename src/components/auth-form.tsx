@@ -60,7 +60,7 @@ export function AuthForm({ type }: AuthFormProps) {
           email: values.email,
           password: values.password,
         });
-        // This will be handled by the AuthProvider now.
+        // Redirect is now handled by AuthProvider.
         // A toast isn't needed here as the user is redirected.
       }
     } catch (error) {

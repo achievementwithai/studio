@@ -12,13 +12,25 @@ export default function AuthPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // The redirect is now handled by the AuthProvider,
+    // but we can still push the user away if they land here while logged in.
     if (!loading && user) {
       router.push("/dashboard");
     }
   }, [user, loading, router]);
 
-  if (loading || user) {
+  // Show a loading spinner while auth state is being determined.
+  if (loading) {
     return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Bot className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  // If the user is somehow still present, show loading to allow AuthProvider to redirect
+  if (user) {
+     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Bot className="h-12 w-12 animate-spin text-primary" />
       </div>
