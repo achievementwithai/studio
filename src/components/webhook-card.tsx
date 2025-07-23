@@ -52,7 +52,7 @@ export function WebhookCard({ webhook, onUpdated, onDeleted }: WebhookCardProps)
       <CardHeader>
         <CardTitle>{webhook.name}</CardTitle>
         <CardDescription>
-          Created on {new Date(webhook.createdAt.seconds * 1000).toLocaleDateString()}
+          {webhook.createdAt && `Created on ${new Date(webhook.createdAt.seconds * 1000).toLocaleDateString()}`}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
